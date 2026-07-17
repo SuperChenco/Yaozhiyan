@@ -21,7 +21,8 @@ body,
 }
 
 #root {
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .scroll-thin::-webkit-scrollbar {
