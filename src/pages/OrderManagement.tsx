@@ -1,8 +1,11 @@
-import { Package, Calendar, MapPin, Truck } from 'lucide-react';
+import { Package, Calendar, MapPin, Truck, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
+import Button from '@/components/Button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/hooks/useAuth';
+import { exportOrders } from '@/utils';
 import { ORDER_STATUSES } from '@/constants';
 
 interface OrderManagementProps {
@@ -20,6 +23,8 @@ const ORDER_STATUS_COLOR: Record<string, 'success' | 'warn' | 'danger'> = {
 
 export default function OrderManagement({ onBack }: OrderManagementProps) {
   const orders = useStore((state) => state.orders);
+  const { isAdmin, isProvincial } = useAuth();
+  const canExport = isAdmin || isProvincial;
 
   const getStatusLabel = (status: string) => {
     return ORDER_STATUSES.find((s) => s.value === status)?.label || status;
@@ -29,11 +34,26 @@ export default function OrderManagement({ onBack }: OrderManagementProps) {
     return ORDER_STATUS_COLOR[status] || 'warn';
   };
 
+  const handleExport = () => {
+    const ok = exportOrders(orders, { filename: '订单报表' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-steel-light pb-20">
       <Header title="订单管理" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
+        {canExport && orders.length > 0 && (
+          <div className="flex justify-end mb-3">
+            <Button variant="default" size="sm" onClick={handleExport}>
+              <Download size={14} className="mr-1" />
+              导出报表
+            </Button>
+          </div>
+        )}
         <div className="space-y-3">
           {orders.map((order) => (
             <Card key={order.id} className="p-4">

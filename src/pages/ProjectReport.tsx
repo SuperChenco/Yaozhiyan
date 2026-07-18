@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Plus, MapPin, Calendar, FileText, FileImage } from 'lucide-react';
+import { Plus, MapPin, Calendar, FileText, FileImage, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import StatusBadge from '@/components/StatusBadge';
 import FileUpload from '@/components/FileUpload';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/hooks/useAuth';
+import { exportProjects, formatFileSize } from '@/utils';
 import { PROJECT_STATUSES, PROJECT_TYPES } from '@/constants';
 import { useStore as useUserStore } from '@/store/useStore';
 import type { Project } from '@/types';
@@ -14,8 +16,16 @@ interface ProjectReportProps {
   onBack: () => void;
 }
 
+interface DrawFile {
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  uploadTime: string;
+}
+
 export default function ProjectReport({ onBack }: ProjectReportProps) {
   const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -23,47 +33,69 @@ export default function ProjectReport({ onBack }: ProjectReportProps) {
     area: '',
     description: '',
   });
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{
-    fileName: string;
-    fileUrl: string;
-    fileSize: number;
-    uploadTime: string;
-  }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<DrawFile[]>([]);
   const projects = useUserStore((state) => state.projects);
   const addProject = useUserStore((state) => state.addProject);
+  const uploadFile = useUserStore((state) => state.uploadFile);
   const user = useUserStore((state) => state.user);
+  const { isAdmin, isProvincial } = useAuth();
+  const canExport = isAdmin || isProvincial;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleExport = () => {
+    const ok = exportProjects(projects, { filename: '项目台账' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
+
+  // 图纸上传：FileUpload 组件 onChange 触发后，逐个调用后端 OSS 接口拿真实 URL
+  const handleFileChange = async (files: any[]) => {
+    const existing = uploadedFiles;
+    const existingNames = new Set(existing.map((f) => f.fileName));
+    const newOnes: DrawFile[] = [];
+
+    for (const f of files) {
+      if (existingNames.has(f.name)) continue;
+      const realFile = (f as { file?: File }).file;
+      if (realFile) {
+        const result = await uploadFile(realFile);
+        if (result) {
+          newOnes.push(result);
+          continue;
+        }
+      }
+      // 兜底：Mock 模式或上传失败时使用本地预览 URL
+      newOnes.push({
+        fileName: f.name,
+        fileUrl: f.previewUrl || '',
+        fileSize: f.size || 0,
+        uploadTime: new Date().toISOString().split('T')[0],
+      });
+    }
+
+    setUploadedFiles([...existing, ...newOnes]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addProject({
-      name: formData.name,
-      location: formData.location,
-      type: formData.type,
-      area: parseFloat(formData.area) || 0,
-      estimatedCost: (parseFloat(formData.area) || 0) * 236,
-      dealerId: user?.id || '',
-      description: formData.description,
-      drawFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
-    });
-    setShowForm(false);
-    setFormData({ name: '', location: '', type: '', area: '', description: '' });
-    setUploadedFiles([]);
-  };
-
-  const handleFileChange = (files: any[]) => {
-    const newFiles = files.map((f) => ({
-      fileName: f.name,
-      fileUrl: f.previewUrl || '',
-      fileSize: f.size,
-      uploadTime: new Date().toISOString().split('T')[0],
-    }));
-    setUploadedFiles(newFiles);
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes}B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+    setSubmitting(true);
+    try {
+      await addProject({
+        name: formData.name,
+        location: formData.location,
+        type: formData.type,
+        area: parseFloat(formData.area) || 0,
+        estimatedCost: (parseFloat(formData.area) || 0) * 236,
+        dealerId: user?.id || '',
+        description: formData.description,
+        drawFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+      });
+      setShowForm(false);
+      setFormData({ name: '', location: '', type: '', area: '', description: '' });
+      setUploadedFiles([]);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusInfo = (status: string) => {
@@ -153,7 +185,7 @@ export default function ProjectReport({ onBack }: ProjectReportProps) {
                   hint="支持图片、PDF、CAD图纸，单文件≤20MB，最多10个"
                 />
               </div>
-              <Button type="submit" size="lg" className="w-full">提交报备</Button>
+              <Button type="submit" size="lg" loading={submitting} className="w-full">提交报备</Button>
             </form>
           </Card>
         </div>
@@ -166,10 +198,18 @@ export default function ProjectReport({ onBack }: ProjectReportProps) {
       <Header title="项目报备" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
-        <Button onClick={() => setShowForm(true)} className="w-full mb-4">
-          <Plus size={18} className="mr-2" />
-          新增项目报备
-        </Button>
+        <div className="flex gap-2 mb-4">
+          <Button onClick={() => setShowForm(true)} className="flex-1">
+            <Plus size={18} className="mr-2" />
+            新增项目报备
+          </Button>
+          {canExport && projects.length > 0 && (
+            <Button variant="default" onClick={handleExport}>
+              <Download size={16} className="mr-1" />
+              导出
+            </Button>
+          )}
+        </div>
 
         <div className="space-y-3">
           {projects.map((project) => {

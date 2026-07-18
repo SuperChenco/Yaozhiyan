@@ -4,8 +4,9 @@ import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { useStore } from '@/store/useStore';
-import { sdcProducts, productCategories } from '@/data/mockData';
-import { USER_ROLES } from '@/constants';
+import { productCategories } from '@/data/mockData';
+import { getRoleLabel } from '@/utils';
+import type { Product } from '@/types';
 
 interface PriceInquiryProps {
   onBack: () => void;
@@ -16,18 +17,35 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
   const user = useStore((state) => state.user);
   const discounts = useStore((state) => state.discounts);
   const getDiscount = useStore((state) => state.getDiscount);
-  const [selectedProduct, setSelectedProduct] = useState(sdcProducts[0]);
+  const products = useStore((state) => state.products);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 兜底：当后端未返回产品数据时，使用第一个产品或空对象
+  const currentProduct: Product = selectedProduct || products[0] || {
+    id: '',
+    name: '暂无产品',
+    code: '-',
+    category: '',
+    description: '',
+    length: 0,
+    width: 0,
+    thickness: 0,
+    basePrice: 0,
+    unit: '元/㎡',
+    image: '',
+    applications: [],
+  };
+
   const role = user?.role || 'city';
   const discount = getDiscount(role as 'admin' | 'provincial' | 'city');
-  const dealerPrice = Math.round(selectedProduct.basePrice * discount * 100) / 100;
-  const roleLabel = USER_ROLES.find((r) => r.value === role)?.label || '用户';
+  const dealerPrice = Math.round(currentProduct.basePrice * discount * 100) / 100;
+  const roleLabel = getRoleLabel(role);
   const isAdmin = role === 'admin';
 
-  const filteredProducts = sdcProducts.filter((p) => {
+  const filteredProducts = products.filter((p) => {
     const matchCategory = activeCategory === 'all' || p.category === activeCategory;
     const matchSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -36,8 +54,8 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
   });
 
   const discountList = [
-    { level: '省级总代', discount: discounts.provincial, price: selectedProduct.basePrice * discounts.provincial },
-    { level: '城市经销商', discount: discounts.city, price: selectedProduct.basePrice * discounts.city },
+    { level: '省级总代', discount: discounts.provincial, price: currentProduct.basePrice * discounts.provincial },
+    { level: '城市经销商', discount: discounts.city, price: currentProduct.basePrice * discounts.city },
   ];
 
   return (
@@ -48,14 +66,14 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
         <Card className="p-4 mb-4" onClick={() => setShowProductPicker(true)}>
           <div className="flex items-center gap-3">
             <img
-              src={selectedProduct.image}
-              alt={selectedProduct.name}
+              src={currentProduct.image}
+              alt={currentProduct.name}
               className="w-14 h-14 rounded-base object-cover"
             />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-carbon-black">{selectedProduct.name}</h3>
-              <p className="text-xs text-steel-light-gray mt-0.5">品号：{selectedProduct.code}</p>
-              <p className="text-xs text-steel-light-gray">{selectedProduct.category}</p>
+              <h3 className="text-sm font-medium text-carbon-black">{currentProduct.name}</h3>
+              <p className="text-xs text-steel-light-gray mt-0.5">品号：{currentProduct.code}</p>
+              <p className="text-xs text-steel-light-gray">{currentProduct.category}</p>
             </div>
             <ChevronDown size={20} className="text-steel-light-gray" />
           </div>
@@ -65,14 +83,14 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
           <div className="w-16 h-16 bg-rock-blue/10 rounded-base flex items-center justify-center mx-auto mb-4">
             <Calculator size={32} className="text-rock-blue" />
           </div>
-          <h2 className="text-xl font-bold text-carbon-black mb-2">{selectedProduct.name}</h2>
-          <p className="text-sm text-steel-light-gray mb-6">品号：{selectedProduct.code}</p>
+          <h2 className="text-xl font-bold text-carbon-black mb-2">{currentProduct.name}</h2>
+          <p className="text-sm text-steel-light-gray mb-6">品号：{currentProduct.code}</p>
 
           <div className="bg-steel-light rounded-base p-4 mb-4">
             <p className="text-sm text-steel-light-gray mb-1">官方指导价</p>
             <div className="flex items-baseline justify-center gap-1">
-              <span className="text-2xl font-bold text-rock-blue">¥{selectedProduct.basePrice}</span>
-              <span className="text-sm text-steel-light-gray">{selectedProduct.unit}</span>
+              <span className="text-2xl font-bold text-rock-blue">¥{currentProduct.basePrice}</span>
+              <span className="text-sm text-steel-light-gray">{currentProduct.unit}</span>
             </div>
           </div>
 
@@ -95,7 +113,7 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-2xl text-rock-blue">¥</span>
                   <span className="text-4xl font-bold text-rock-blue">{dealerPrice}</span>
-                  <span className="text-lg text-steel-light-gray">{selectedProduct.unit}</span>
+                  <span className="text-lg text-steel-light-gray">{currentProduct.unit}</span>
                 </div>
               </div>
             </>
@@ -106,8 +124,8 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
               <p className="text-sm text-steel-light-gray mb-1">管理员视角 - 指导价</p>
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-2xl text-rock-blue">¥</span>
-                <span className="text-4xl font-bold text-rock-blue">{selectedProduct.basePrice}</span>
-                <span className="text-lg text-steel-light-gray">{selectedProduct.unit}</span>
+                <span className="text-4xl font-bold text-rock-blue">{currentProduct.basePrice}</span>
+                <span className="text-lg text-steel-light-gray">{currentProduct.unit}</span>
               </div>
               <p className="text-xs text-steel-light-gray mt-2">各级代理商折扣可后台设置</p>
             </div>
@@ -137,7 +155,7 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
                     <p className="text-sm text-steel-gray">{item.level}</p>
                     <p className="text-xs text-steel-light-gray">{Math.round(item.discount * 100)}% 折扣</p>
                   </div>
-                  <p className="text-sm font-medium text-rock-blue">¥{item.price.toFixed(0)}/{selectedProduct.unit}</p>
+                  <p className="text-sm font-medium text-rock-blue">¥{item.price.toFixed(0)}/{currentProduct.unit}</p>
                 </div>
               ))}
             </div>
@@ -221,7 +239,7 @@ export default function PriceInquiry({ onBack, onNavigate }: PriceInquiryProps) 
                       setSearchQuery('');
                     }}
                     className={`!p-2 !rounded-base !border-2 !transition-all !text-left ${
-                      selectedProduct.id === product.id
+                      currentProduct.id === product.id
                         ? '!border-rock-blue !bg-rock-blue/5'
                         : '!border-steel-light-gray'
                     }`}

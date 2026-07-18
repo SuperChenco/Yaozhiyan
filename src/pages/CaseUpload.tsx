@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Upload, Image as ImageIcon, MapPin, Grid3X3, FileText, Plus, X, Gift, ChevronDown } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { useStore } from '@/store/useStore';
-import { sdcProducts } from '@/data/mockData';
 import { PROVINCES, PROJECT_TYPES, POINT_RULES } from '@/constants';
 
 interface CaseUploadProps {
@@ -15,7 +14,11 @@ const sampleImage = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?pr
 
 export default function CaseUpload({ onBack }: CaseUploadProps) {
   const uploadCase = useStore((state) => state.uploadCase);
+  const products = useStore((state) => state.products);
+  const uploadFile = useStore((state) => state.uploadFile);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showProductPicker, setShowProductPicker] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -28,36 +31,56 @@ export default function CaseUpload({ onBack }: CaseUploadProps) {
   const [images, setImages] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
+  // 图片上传：通过隐藏 input 触发文件选择，调用后端 OSS 上传接口
   const handleImageUpload = () => {
     if (images.length >= 6) return;
-    setImages([...images, sampleImage + `?t=${Date.now()}`]);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ''; // 重置以支持重复选择同一文件
+    const result = await uploadFile(file);
+    if (result) {
+      setImages((prev) => (prev.length >= 6 ? prev : [...prev, result.fileUrl]));
+    } else {
+      // 兜底：Mock 模式或上传失败时使用本地预览
+      const previewUrl = URL.createObjectURL(file);
+      setImages((prev) => (prev.length >= 6 ? prev : [...prev, previewUrl]));
+    }
   };
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.location || !formData.type || !formData.productId) {
       return;
     }
-
-    uploadCase({
-      name: formData.name,
-      location: formData.location,
-      type: formData.type,
-      area: parseFloat(formData.area) || 0,
-      productId: formData.productId,
-      productName: formData.productName,
-      description: formData.description,
-      images: images.length > 0 ? images : [sampleImage],
-    });
-
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const result = await uploadCase({
+        name: formData.name,
+        location: formData.location,
+        type: formData.type,
+        area: parseFloat(formData.area) || 0,
+        productId: formData.productId,
+        productName: formData.productName,
+        description: formData.description,
+        images: images.length > 0 ? images : [sampleImage],
+      });
+      if (result) {
+        setSubmitted(true);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const selectedProduct = sdcProducts.find((p) => p.id === formData.productId);
+  const selectedProduct = products.find((p) => p.id === formData.productId);
 
   if (submitted) {
     return (
@@ -243,11 +266,19 @@ export default function CaseUpload({ onBack }: CaseUploadProps) {
           </Card>
 
           <div className="fixed bottom-0 left-0 right-0 bg-steel-white border-t border-steel-light-gray p-4">
-            <Button type="submit" variant="primary" size="lg" fullWidth>
+            <Button type="submit" variant="primary" size="lg" fullWidth loading={submitting}>
               <Upload size={16} className="mr-2" />
               提交审核
             </Button>
           </div>
+          {/* 隐藏的文件输入：用于触发后端 OSS 图片上传 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </form>
       </div>
 
@@ -267,7 +298,7 @@ export default function CaseUpload({ onBack }: CaseUploadProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-2">
-                {sdcProducts.map((product) => (
+                {products.map((product) => (
                   <Button
                     key={product.id}
                     variant="default"

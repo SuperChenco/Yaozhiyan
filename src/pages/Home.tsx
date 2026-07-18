@@ -1,5 +1,5 @@
 import { ArrowRight, Phone, Mail, MapPin, FileText, ShoppingCart, Calculator, Users, LayoutDashboard, Grid3X3, Layers } from 'lucide-react';
-import { sdcProducts, cases, certifications } from '@/data/mockData';
+import { certifications } from '@/data/mockData';
 import { OFFICIAL_SERVICES, OFFICIAL_BANNER_IMAGE } from '@/constants';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
@@ -11,6 +11,8 @@ interface HomeProps {
 
 export default function Home({ onNavigate }: HomeProps) {
   const user = useStore((state) => state.user);
+  const products = useStore((state) => state.products);
+  const cases = useStore((state) => state.cases);
   const isAdmin = user?.role === 'admin';
   const isProvincial = user?.role === 'provincial';
 
@@ -108,7 +110,7 @@ export default function Home({ onNavigate }: HomeProps) {
             27款进口SDC轻强混凝土装饰挂板，9大系列，多种肌理可选
           </p>
           <div className="grid grid-cols-4 gap-2">
-            {sdcProducts.slice(0, 8).map((product) => (
+            {products.slice(0, 8).map((product) => (
               <Button
                 key={product.id}
                 variant="default"
@@ -124,8 +126,10 @@ export default function Home({ onNavigate }: HomeProps) {
             ))}
           </div>
           <div className="mt-3 flex items-center justify-between text-xs">
-            <span className="text-steel-light-gray">共 {sdcProducts.length} 款产品</span>
-            <span className="text-rock-blue">¥{Math.min(...sdcProducts.map(p => p.basePrice))} 起/㎡</span>
+            <span className="text-steel-light-gray">共 {products.length} 款产品</span>
+            <span className="text-rock-blue">
+              {products.length > 0 ? `¥${Math.min(...products.map(p => p.basePrice))} 起/㎡` : '暂无产品'}
+            </span>
           </div>
         </Card>
       </div>

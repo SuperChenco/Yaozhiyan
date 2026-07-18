@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Users, Search, Check, X, Building, MapPin, Phone } from 'lucide-react';
+import { Users, Search, Check, X, Building, MapPin, Phone, Download } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/hooks/useAuth';
+import { exportDealers } from '@/utils';
 import { DEALER_LEVELS } from '@/constants';
 
 interface DealerManagementProps {
@@ -22,6 +24,17 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
   const dealerList = useStore((state) => state.dealerList);
   const approveDealer = useStore((state) => state.approveDealer);
   const rejectDealer = useStore((state) => state.rejectDealer);
+  const pointRecords = useStore((state) => state.pointRecords);
+  const { isAdmin, isProvincial } = useAuth();
+  const canExport = isAdmin || isProvincial;
+
+  const handleExport = () => {
+    const ok = exportDealers(dealerList, pointRecords, { filename: '经销商报表' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const filteredDealers = dealerList.filter((d) => {
@@ -49,18 +62,26 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
       <Header title="经销商管理" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
-        <div className="flex bg-steel-light rounded-base p-1 mb-4">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.key}
-              variant={activeTab === tab.key ? 'primary' : 'default'}
-              size="sm"
-              onClick={() => setActiveTab(tab.key as 'all' | 'pending' | 'approved' | 'rejected')}
-              className="flex-1 !rounded-md"
-            >
-              {tab.label}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex bg-steel-light rounded-base p-1 flex-1">
+            {tabs.map((tab) => (
+              <Button
+                key={tab.key}
+                variant={activeTab === tab.key ? 'primary' : 'default'}
+                size="sm"
+                onClick={() => setActiveTab(tab.key as 'all' | 'pending' | 'approved' | 'rejected')}
+                className="flex-1 !rounded-md"
+              >
+                {tab.label}
+              </Button>
+            ))}
+          </div>
+          {canExport && (
+            <Button variant="default" size="sm" onClick={handleExport}>
+              <Download size={14} className="mr-1" />
+              导出
             </Button>
-          ))}
+          )}
         </div>
 
         <div className="space-y-3">

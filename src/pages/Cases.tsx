@@ -3,7 +3,7 @@ import { MapPin, Calendar, Maximize } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
-import { cases } from '@/data/mockData';
+import { useStore } from '@/store/useStore';
 
 interface CasesProps {
 }
@@ -11,6 +11,7 @@ interface CasesProps {
 export default function Cases() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState(0);
+  const cases = useStore((state) => state.cases);
 
   const selectedCaseData = cases.find((c) => c.id === selectedCase);
 

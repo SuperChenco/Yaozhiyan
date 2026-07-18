@@ -1,8 +1,10 @@
-import { TrendingUp, Users, FileText, ShoppingCart, DollarSign, Building2 } from 'lucide-react';
+import { TrendingUp, Users, FileText, ShoppingCart, DollarSign, Building2, Download, Package, ShoppingBag } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/hooks/useAuth';
+import { exportDealers, exportProjects, exportOrders } from '@/utils';
 import { DEALER_LEVELS } from '@/constants';
 
 interface AdminDashboardProps {
@@ -15,6 +17,27 @@ export default function AdminDashboard({ onBack, onNavigate }: AdminDashboardPro
   const projects = useStore((state) => state.projects);
   const orders = useStore((state) => state.orders);
   const inquiries = useStore((state) => state.inquiries);
+  const pointRecords = useStore((state) => state.pointRecords);
+  const { isAdmin } = useAuth();
+
+  const handleExportDealers = () => {
+    const ok = exportDealers(dealerList, pointRecords, { filename: '经销商报表' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
+  const handleExportProjects = () => {
+    const ok = exportProjects(projects, { filename: '项目台账' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
+  const handleExportOrders = () => {
+    const ok = exportOrders(orders, { filename: '订单报表' });
+    if (!ok) {
+      useStore.setState({ globalError: '暂无数据可导出' });
+    }
+  };
 
   const pendingDealers = dealerList.filter((d) => d.status === 'pending').length;
   const pendingProjects = projects.filter((p) => p.status === 'pending').length;
@@ -26,6 +49,8 @@ export default function AdminDashboard({ onBack, onNavigate }: AdminDashboardPro
     { icon: FileText, label: '项目审核', page: 'project-review', badge: pendingProjects, color: 'text-status-warn bg-status-warn/15' },
     { icon: ShoppingCart, label: '订单管理', page: 'order-management', color: 'text-status-success bg-status-success/15' },
     { icon: DollarSign, label: '价格管理', page: 'price-management', color: 'text-rock-hover bg-rock-hover/15' },
+    { icon: Package, label: '产品管理', page: 'product-manage', color: 'text-rock-blue bg-rock-blue/10' },
+    { icon: ShoppingBag, label: '样品销售', page: 'sample-sales', color: 'text-status-success bg-status-success/15' },
   ];
 
   const provincialDealers = dealerList.filter((d) => d.level === 'provincial').length;
@@ -73,7 +98,7 @@ export default function AdminDashboard({ onBack, onNavigate }: AdminDashboardPro
         </div>
 
         <h3 className="text-sm font-medium text-steel-gray mb-3">快捷操作</h3>
-        <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-6 gap-2 mb-4">
           {quickActions.map((item) => {
             const Icon = item.icon;
             return (
@@ -98,6 +123,26 @@ export default function AdminDashboard({ onBack, onNavigate }: AdminDashboardPro
             );
           })}
         </div>
+
+        {isAdmin && (
+          <Card className="p-4 mb-4">
+            <h3 className="text-sm font-medium text-steel-gray mb-3">数据导出</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="default" onClick={handleExportDealers}>
+                <Download size={14} className="mr-1" />
+                经销商
+              </Button>
+              <Button variant="default" onClick={handleExportProjects}>
+                <Download size={14} className="mr-1" />
+                项目台账
+              </Button>
+              <Button variant="default" onClick={handleExportOrders}>
+                <Download size={14} className="mr-1" />
+                订单报表
+              </Button>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-4 mb-4">
           <h3 className="text-sm font-medium text-steel-gray mb-3">经销商分布</h3>

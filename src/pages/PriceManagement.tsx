@@ -6,7 +6,6 @@ import Button from '@/components/Button';
 import { StatusBadge } from '@/components/StatusBadge';
 import FileUpload from '@/components/FileUpload';
 import { useStore } from '@/store/useStore';
-import { sdcProduct } from '@/data/mockData';
 import type { PointGoods, PointExchangeRecord } from '@/types';
 
 interface PriceManagementProps {
@@ -16,16 +15,22 @@ interface PriceManagementProps {
 export default function PriceManagement({ onBack }: PriceManagementProps) {
   const discounts = useStore((state) => state.discounts);
   const updateDiscount = useStore((state) => state.updateDiscount);
+  const saveDiscounts = useStore((state) => state.saveDiscounts);
   const pointGoods = useStore((state) => state.pointGoods);
   const exchangeRecords = useStore((state) => state.exchangeRecords);
   const addPointGoods = useStore((state) => state.addPointGoods);
   const updatePointGoods = useStore((state) => state.updatePointGoods);
   const updateShipStatus = useStore((state) => state.updateShipStatus);
+  const uploadFile = useStore((state) => state.uploadFile);
+  const products = useStore((state) => state.products);
+  // 价格基准产品：取后端产品列表首个，回退到空对象（兼容 Mock 与后端数据缺失场景）
+  const baseProduct = products[0] || { code: '-', basePrice: 0, unit: '元/㎡', name: 'SDC轻强混凝土装饰挂板' };
 
   const [activeTab, setActiveTab] = useState<'discount' | 'goods'>('discount');
   const [provincialDiscount, setProvincialDiscount] = useState(discounts.provincial);
   const [cityDiscount, setCityDiscount] = useState(discounts.city);
   const [showSaved, setShowSaved] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -42,15 +47,22 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
   const [editingGoods, setEditingGoods] = useState<PointGoods | null>(null);
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
 
-  const basePrice = sdcProduct.basePrice;
+  const basePrice = baseProduct.basePrice;
   const provincialPrice = Math.round(basePrice * provincialDiscount);
   const cityPrice = Math.round(basePrice * cityDiscount);
 
-  const handleSaveDiscount = () => {
-    updateDiscount('provincial', provincialDiscount);
-    updateDiscount('city', cityDiscount);
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 2000);
+  // 保存折扣：调用后端持久化
+  const handleSaveDiscount = async () => {
+    setSubmitting(true);
+    try {
+      updateDiscount('provincial', provincialDiscount);
+      updateDiscount('city', cityDiscount);
+      await saveDiscounts({ provincial: provincialDiscount, city: cityDiscount });
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleResetDiscount = () => {
@@ -58,36 +70,63 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
     setCityDiscount(0.85);
   };
 
-  const handleFileUpload = (files: any[]) => {
+  // 文件上传：调用 OSS 上传接口，拿到真实 URL
+  const handleFileUpload = async (files: any[]) => {
     setUploadedImages(files);
-    if (files.length > 0 && files[0].previewUrl) {
-      setNewGoods((prev) => ({ ...prev, coverImg: files[0].previewUrl }));
+    if (files.length > 0) {
+      const raw = files[0];
+      const realFile = raw?.file as File | undefined;
+      if (realFile) {
+        const result = await uploadFile(realFile);
+        if (result) {
+          setNewGoods((prev) => ({ ...prev, coverImg: result.fileUrl }));
+          return;
+        }
+      }
+      // 兜底：使用本地预览 URL（Mock 模式）
+      setNewGoods((prev) => ({ ...prev, coverImg: raw.previewUrl || '' }));
     }
   };
 
-  const handleAddGoods = () => {
+  // 新增商品：调用后端创建接口
+  const handleAddGoods = async () => {
     if (!newGoods.name || !newGoods.coverImg || newGoods.needPoints <= 0 || newGoods.stock <= 0) {
       return;
     }
-    addPointGoods({
-      id: `goods-${Date.now()}`,
-      name: newGoods.name,
-      coverImg: newGoods.coverImg,
-      needPoints: newGoods.needPoints,
-      stock: newGoods.stock,
-      desc: newGoods.desc,
-      status: 'up' as const,
-    });
-    setNewGoods({ name: '', needPoints: 0, stock: 0, desc: '', coverImg: '' });
-    setUploadedImages([]);
-    setShowAddModal(false);
+    setSubmitting(true);
+    try {
+      await addPointGoods({
+        name: newGoods.name,
+        coverImg: newGoods.coverImg,
+        needPoints: newGoods.needPoints,
+        stock: newGoods.stock,
+        desc: newGoods.desc,
+      });
+      setNewGoods({ name: '', needPoints: 0, stock: 0, desc: '', coverImg: '' });
+      setUploadedImages([]);
+      setShowAddModal(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleEditGoods = () => {
+  // 编辑商品：调用后端更新接口
+  const handleEditGoods = async () => {
     if (!editingGoods) return;
-    updatePointGoods(editingGoods.id, editingGoods);
-    setEditingGoods(null);
-    setShowEditModal(false);
+    setSubmitting(true);
+    try {
+      await updatePointGoods(editingGoods.id, {
+        name: editingGoods.name,
+        needPoints: editingGoods.needPoints,
+        stock: editingGoods.stock,
+        desc: editingGoods.desc,
+        status: editingGoods.status,
+      });
+      setEditingGoods(null);
+      setShowEditModal(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusConfig = (status: PointGoods['status']) => {
@@ -115,7 +154,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
               </div>
               <div>
                 <h2 className="text-sm font-medium text-carbon-black">SDC轻强混凝土装饰挂板</h2>
-                <p className="text-xs text-steel-light-gray">产品代码：{sdcProduct.code}</p>
+                <p className="text-xs text-steel-light-gray">产品代码：{baseProduct.code}</p>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-steel-light-gray">
@@ -123,7 +162,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
                 <span className="text-sm text-steel-light-gray">官方指导价</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-bold text-rock-blue">¥{basePrice}</span>
-                  <span className="text-xs text-steel-light-gray">/{sdcProduct.unit}</span>
+                  <span className="text-xs text-steel-light-gray">/{baseProduct.unit}</span>
                 </div>
               </div>
             </div>
@@ -160,7 +199,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
                   <span className="text-xs text-steel-light-gray">省级总代拿货价</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-base font-bold text-rock-blue">¥{provincialPrice}</span>
-                    <span className="text-xs text-steel-light-gray">/{sdcProduct.unit}</span>
+                    <span className="text-xs text-steel-light-gray">/{baseProduct.unit}</span>
                   </div>
                 </div>
               </div>
@@ -192,7 +231,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
                   <span className="text-xs text-steel-light-gray">城市经销商拿货价</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-base font-bold text-rock-blue">¥{cityPrice}</span>
-                    <span className="text-xs text-steel-light-gray">/{sdcProduct.unit}</span>
+                    <span className="text-xs text-steel-light-gray">/{baseProduct.unit}</span>
                   </div>
                 </div>
               </div>
@@ -215,7 +254,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
               <RotateCcw size={16} className="mr-2" />
               恢复默认
             </Button>
-            <Button onClick={handleSaveDiscount} className="flex-1">
+            <Button onClick={handleSaveDiscount} loading={submitting} className="flex-1">
               <Save size={16} className="mr-2" />
               保存设置
             </Button>
@@ -458,6 +497,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
               <Button
                 variant="primary"
                 fullWidth
+                loading={submitting}
                 disabled={!newGoods.name || !newGoods.coverImg || newGoods.needPoints <= 0 || newGoods.stock <= 0}
                 onClick={handleAddGoods}
               >
@@ -553,6 +593,7 @@ export default function PriceManagement({ onBack }: PriceManagementProps) {
               <Button
                 variant="primary"
                 fullWidth
+                loading={submitting}
                 onClick={handleEditGoods}
               >
                 保存修改

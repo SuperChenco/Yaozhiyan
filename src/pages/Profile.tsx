@@ -3,7 +3,8 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { RoleBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
-import { USER_ROLES, POINT_RULES } from '@/constants';
+import { POINT_RULES } from '@/constants';
+import { getRoleLabel } from '@/utils';
 
 interface ProfileProps {
   onNavigate: (page: string) => void;
@@ -19,7 +20,7 @@ export default function Profile({ onNavigate }: ProfileProps) {
   const isAdmin = user?.role === 'admin';
   const isProvincial = user?.role === 'provincial';
 
-  const roleLabel = USER_ROLES.find((r) => r.value === user?.role)?.label || '用户';
+  const roleLabel = getRoleLabel(user?.role || '');
   const userRole = (user?.role || 'city') as 'admin' | 'provincial' | 'city';
   const myProjects = projects.filter(p => user && p.dealerName === user.name);
   const myOrders = orders.filter(o => user && o.dealerId === user.id);

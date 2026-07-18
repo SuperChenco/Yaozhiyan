@@ -3,7 +3,8 @@ import { Search, Grid3X3, Ruler, Maximize2 } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
-import { sdcProducts, productCategories } from '@/data/mockData';
+import { productCategories } from '@/data/mockData';
+import { useStore } from '@/store/useStore';
 import type { Product as ProductType } from '@/types';
 
 interface ProductProps {
@@ -14,8 +15,9 @@ export default function Product({ onNavigate }: ProductProps) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
+  const products = useStore((state) => state.products);
 
-  const filteredProducts = sdcProducts.filter((p) => {
+  const filteredProducts = products.filter((p) => {
     const matchCategory = activeCategory === 'all' || p.category === activeCategory;
     const matchSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

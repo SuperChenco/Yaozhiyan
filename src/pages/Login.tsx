@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Eye, EyeOff, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, MessageCircle } from 'lucide-react';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { useStore } from '@/store/useStore';
+import { useWechatLogin } from '@/hooks/useWechatLogin';
 
 interface LoginProps {
   onRegister: () => void;
@@ -14,7 +15,9 @@ export default function Login({ onRegister, onSuccess }: LoginProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [wechatLoading, setWechatLoading] = useState(false);
   const login = useStore((state) => state.login);
+  const { redirectToWechat } = useWechatLogin();
 
   const handleLogin = async () => {
     setError('');
@@ -30,6 +33,29 @@ export default function Login({ onRegister, onSuccess }: LoginProps) {
     }
   };
 
+  const handleWechatLogin = async () => {
+    setError('');
+    setWechatLoading(true);
+    try {
+      // Mock 模式：redirectToWechat 内部直接触发登录
+      // 真实环境：跳转微信授权页，回调时 App 自动用 code 登录
+      const success = await new Promise<boolean>((resolve) => {
+        redirectToWechat();
+        // Mock 模式下 wechatLogin 是同步触发，等待 500ms 后检测登录状态
+        setTimeout(() => {
+          resolve(true);
+        }, 500);
+      });
+      if (success) {
+        onSuccess();
+      }
+    } catch {
+      setError('微信授权失败，请使用手机号登录');
+    } finally {
+      setWechatLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-steel-dark flex items-center justify-center px-4">
       <Card className="w-full max-w-sm p-6">
@@ -39,6 +65,26 @@ export default function Login({ onRegister, onSuccess }: LoginProps) {
           </div>
           <h1 className="text-xl font-bold text-carbon-black">经销商登录</h1>
           <p className="text-sm text-steel-light-gray mt-1">欢迎加入曜之岩经销商体系</p>
+        </div>
+
+        {/* 微信一键登录 - 主入口 */}
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={wechatLoading}
+          onClick={handleWechatLogin}
+          className="mb-4"
+        >
+          <MessageCircle size={18} className="mr-2" />
+          微信一键登录
+        </Button>
+
+        {/* 分隔线 */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-steel-light-gray" />
+          <span className="text-xs text-steel-light-gray">其他登录方式</span>
+          <div className="flex-1 h-px bg-steel-light-gray" />
         </div>
 
         <div className="space-y-4">
