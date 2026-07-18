@@ -17,6 +17,7 @@ import CaseUpload from '@/pages/CaseUpload';
 import MyCases from '@/pages/MyCases';
 import CaseReview from '@/pages/CaseReview';
 import Points from '@/pages/Points';
+import PointsMall from '@/pages/PointsMall';
 import { useStore } from '@/store/useStore';
 
 const tabs = [
@@ -99,6 +100,8 @@ export default function App() {
         return <CaseReview onBack={handleBack} />;
       case 'points':
         return <Points onBack={handleBack} onNavigate={handleNavigate} />;
+      case 'point-mall':
+        return <PointsMall onBack={handleBack} />;
       default:
         return <HomePage onNavigate={handleNavigate} />;
     }
@@ -109,10 +112,10 @@ export default function App() {
   if (isLogin) {
     if (isLoggedIn && user) {
       return (
-        <div className="min-h-screen bg-yaozhiyan-gray-50">
+        <div className="min-h-screen bg-steel-light">
           {renderPage()}
           {showTabBar && (
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-yaozhiyan-gray-100 px-2 py-2 z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-steel-white border-t border-steel-light-gray px-2 py-2 z-50">
               <div className="flex justify-around">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -121,8 +124,8 @@ export default function App() {
                     <button
                       key={tab.id}
                       onClick={() => handleNavigate(tab.id)}
-                      className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                        isActive ? 'text-yaozhiyan-primary' : 'text-yaozhiyan-gray-400'
+                      className={`flex flex-col items-center gap-1 px-4 py-2 rounded-base transition-colors ${
+                        isActive ? 'text-rock-blue' : 'text-steel-light-gray'
                       }`}
                     >
                       <Icon size={22} />
@@ -137,14 +140,14 @@ export default function App() {
       );
     }
     return (
-      <div className="min-h-screen bg-yaozhiyan-gray-50">
+      <div className="min-h-screen bg-steel-light">
         <Login onRegister={() => setIsLogin(false)} onSuccess={() => {}} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-yaozhiyan-gray-50">
+    <div className="min-h-screen bg-steel-light">
       <Register onBack={() => setIsLogin(true)} />
     </div>
   );

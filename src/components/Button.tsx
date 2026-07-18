@@ -1,12 +1,35 @@
+import { ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
+
+type ButtonVariant = 'primary' | 'default' | 'danger' | 'outline';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
 interface ButtonProps {
-  children: React.ReactNode;
+  children: ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   disabled?: boolean;
-  className?: string;
+  loading?: boolean;
+  fullWidth?: boolean;
   type?: 'button' | 'submit';
+  icon?: ReactNode;
+  className?: string;
 }
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary: 'bg-rock-blue text-steel-white hover:bg-rock-hover',
+  default:
+    'bg-steel-white text-steel-gray border border-steel-light-gray hover:border-rock-hover hover:text-rock-blue',
+  danger: 'bg-status-danger text-steel-white hover:bg-status-danger/90',
+  outline: 'bg-transparent text-rock-blue border border-rock-blue hover:bg-rock-blue hover:text-steel-white',
+};
+
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-3 text-base',
+};
 
 export default function Button({
   children,
@@ -14,31 +37,36 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   disabled = false,
-  className = '',
+  loading = false,
+  fullWidth = false,
   type = 'button',
+  icon,
+  className = '',
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
-  
-  const variants = {
-    primary: 'bg-yaozhiyan-primary text-white hover:bg-yaozhiyan-primaryDark focus:ring-yaozhiyan-primary',
-    secondary: 'bg-yaozhiyan-secondary text-white hover:bg-yaozhiyan-secondaryLight focus:ring-yaozhiyan-secondary',
-    outline: 'border-2 border-yaozhiyan-primary text-yaozhiyan-primary hover:bg-yaozhiyan-primary hover:text-white focus:ring-yaozhiyan-primary',
-    ghost: 'text-yaozhiyan-gray-600 hover:bg-yaozhiyan-gray-100 focus:ring-yaozhiyan-gray-300',
-  };
-  
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
-  };
-  
+  const isDisabled = disabled || loading;
+
   return (
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      disabled={isDisabled}
+      className={[
+        'inline-flex items-center justify-center gap-1.5 font-medium rounded-base shadow-sm',
+        'transition-colors duration-150 ease-fade focus:outline-none',
+        variantClasses[variant],
+        sizeClasses[size],
+        fullWidth ? 'w-full' : '',
+        isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
+      {loading ? (
+        <Loader2 size={16} className="animate-spin" strokeWidth={1.5} />
+      ) : (
+        icon
+      )}
       {children}
     </button>
   );

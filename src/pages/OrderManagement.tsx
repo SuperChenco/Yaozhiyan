@@ -1,12 +1,22 @@
 import { Package, Calendar, MapPin, Truck } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
 import { ORDER_STATUSES } from '@/constants';
 
 interface OrderManagementProps {
   onBack: () => void;
 }
+
+// 订单状态到StatusBadge颜色映射
+const ORDER_STATUS_COLOR: Record<string, 'success' | 'warn' | 'danger'> = {
+  pending: 'warn',
+  processing: 'warn',
+  shipped: 'warn',
+  completed: 'success',
+  cancelled: 'danger',
+};
 
 export default function OrderManagement({ onBack }: OrderManagementProps) {
   const orders = useStore((state) => state.orders);
@@ -15,8 +25,12 @@ export default function OrderManagement({ onBack }: OrderManagementProps) {
     return ORDER_STATUSES.find((s) => s.value === status)?.label || status;
   };
 
+  const getStatusColor = (status: string): 'success' | 'warn' | 'danger' => {
+    return ORDER_STATUS_COLOR[status] || 'warn';
+  };
+
   return (
-    <div className="min-h-screen bg-yaozhiyan-gray-50 pb-20">
+    <div className="min-h-screen bg-steel-light pb-20">
       <Header title="订单管理" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
@@ -25,32 +39,34 @@ export default function OrderManagement({ onBack }: OrderManagementProps) {
             <Card key={order.id} className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Package size={18} className="text-yaozhiyan-primary" />
-                  <span className="text-sm font-medium text-yaozhiyan-gray-800">订单号：{order.id}</span>
+                  <Package size={18} className="text-rock-blue" />
+                  <span className="text-sm font-medium text-carbon-black">订单号：{order.id}</span>
                 </div>
-                <span className="px-2 py-0.5 bg-yaozhiyan-primary/10 text-yaozhiyan-primary text-xs rounded">
-                  {getStatusLabel(order.status)}
-                </span>
+                <StatusBadge
+                  label={getStatusLabel(order.status)}
+                  color={getStatusColor(order.status)}
+                  size="sm"
+                />
               </div>
               <div className="mb-3">
-                <h4 className="text-sm text-yaozhiyan-gray-700">{order.productName}</h4>
-                <p className="text-xs text-yaozhiyan-gray-500 mt-1">
+                <h4 className="text-sm text-steel-gray">{order.productName}</h4>
+                <p className="text-xs text-steel-light-gray mt-1">
                   数量：{order.quantity}㎡ × ¥{order.unitPrice}/{order.productName.includes('SDC') ? '㎡' : '件'}
                 </p>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-sm">
-                  <span className="text-yaozhiyan-gray-500">合计：</span>
-                  <span className="text-yaozhiyan-primary font-bold">¥{order.totalPrice.toLocaleString()}</span>
+                  <span className="text-steel-light-gray">合计：</span>
+                  <span className="text-rock-blue font-bold">¥{order.totalPrice.toLocaleString()}</span>
                 </div>
-                <span className="flex items-center gap-1 text-xs text-yaozhiyan-gray-400">
+                <span className="flex items-center gap-1 text-xs text-steel-light-gray">
                   <Calendar size={12} />
                   {order.createdAt}
                 </span>
               </div>
               {order.deliveryAddress && (
-                <div className="mt-3 pt-3 border-t border-yaozhiyan-gray-100">
-                  <p className="text-sm text-yaozhiyan-gray-600 flex items-start gap-2">
+                <div className="mt-3 pt-3 border-t border-steel-light-gray">
+                  <p className="text-sm text-steel-gray flex items-start gap-2">
                     <MapPin size={14} className="flex-shrink-0 mt-0.5" />
                     收货地址：{order.deliveryAddress}
                   </p>

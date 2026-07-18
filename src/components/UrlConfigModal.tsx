@@ -64,7 +64,7 @@ export default function UrlConfigModal() {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm text-white/90">{m.name}</span>
                     {!isDefault && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-status-warn/15 text-status-warn">
                         已自定义
                       </span>
                     )}

@@ -2,12 +2,21 @@ import { useState } from 'react';
 import { Users, Search, Check, X, Building, MapPin, Phone } from 'lucide-react';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
+import Button from '@/components/Button';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
 import { DEALER_LEVELS } from '@/constants';
 
 interface DealerManagementProps {
   onBack: () => void;
 }
+
+// 经销商状态到StatusBadge颜色映射
+const DEALER_STATUS_CONFIG: Record<string, { label: string; color: 'success' | 'warn' | 'danger' }> = {
+  pending: { label: '待审核', color: 'warn' },
+  approved: { label: '已通过', color: 'success' },
+  rejected: { label: '已拒绝', color: 'danger' },
+};
 
 export default function DealerManagement({ onBack }: DealerManagementProps) {
   const dealerList = useStore((state) => state.dealerList);
@@ -20,13 +29,8 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
     return d.status === activeTab;
   });
 
-  const getStatusLabel = (status: string) => {
-    const map: Record<string, { label: string; color: string }> = {
-      pending: { label: '待审核', color: 'bg-amber-100 text-amber-600' },
-      approved: { label: '已通过', color: 'bg-green-100 text-green-600' },
-      rejected: { label: '已拒绝', color: 'bg-red-100 text-red-600' },
-    };
-    return map[status] || { label: status, color: 'bg-gray-100 text-gray-600' };
+  const getStatusInfo = (status: string) => {
+    return DEALER_STATUS_CONFIG[status] || { label: status, color: 'warn' as const };
   };
 
   const getLevelLabel = (level: string) => {
@@ -41,52 +45,48 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-yaozhiyan-gray-50 pb-20">
+    <div className="min-h-screen bg-steel-light pb-20">
       <Header title="经销商管理" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
-        <div className="flex bg-yaozhiyan-gray-100 rounded-lg p-1 mb-4">
+        <div className="flex bg-steel-light rounded-base p-1 mb-4">
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              className={`flex-1 py-2 text-sm rounded-md transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-white text-yaozhiyan-primary shadow-sm'
-                  : 'text-yaozhiyan-gray-500'
-              }`}
+              variant={activeTab === tab.key ? 'primary' : 'default'}
+              size="sm"
+              onClick={() => setActiveTab(tab.key as 'all' | 'pending' | 'approved' | 'rejected')}
+              className="flex-1 !rounded-md"
             >
               {tab.label}
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="space-y-3">
           {filteredDealers.map((dealer) => {
-            const statusInfo = getStatusLabel(dealer.status);
+            const statusInfo = getStatusInfo(dealer.status);
             return (
               <Card key={dealer.id} className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yaozhiyan-primary/10 rounded-full flex items-center justify-center">
-                      <Users size={20} className="text-yaozhiyan-primary" />
+                    <div className="w-10 h-10 bg-rock-blue/10 rounded-base flex items-center justify-center">
+                      <Users size={20} className="text-rock-blue" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-yaozhiyan-gray-800">{dealer.name}</h4>
-                      <p className="text-xs text-yaozhiyan-gray-500 mt-0.5">{dealer.company}</p>
+                      <h4 className="text-sm font-medium text-carbon-black">{dealer.name}</h4>
+                      <p className="text-xs text-steel-light-gray mt-0.5">{dealer.company}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 text-xs rounded ${statusInfo.color}`}>
-                    {statusInfo.label}
-                  </span>
+                  <StatusBadge label={statusInfo.label} color={statusInfo.color} size="sm" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="flex items-center gap-1.5 text-xs text-yaozhiyan-gray-500">
+                  <div className="flex items-center gap-1.5 text-xs text-steel-light-gray">
                     <Building size={12} />
                     <span>{getLevelLabel(dealer.level)}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-yaozhiyan-gray-500">
+                  <div className="flex items-center gap-1.5 text-xs text-steel-light-gray">
                     <MapPin size={12} />
                     <span>
                       {dealer.province}
@@ -95,27 +95,33 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-yaozhiyan-gray-400 mb-3">
+                <div className="flex items-center gap-2 text-xs text-steel-light-gray mb-3">
                   <Phone size={12} />
                   <span>{dealer.phone}</span>
                 </div>
 
                 {dealer.status === 'pending' && (
-                  <div className="flex gap-2 pt-3 border-t border-yaozhiyan-gray-100">
-                    <button
+                  <div className="flex gap-2 pt-3 border-t border-steel-light-gray">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      fullWidth
                       onClick={() => approveDealer(dealer.id)}
-                      className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-50 text-green-600 rounded-lg text-sm"
+                      className="!bg-status-success/15 !text-status-success !border-status-success/30 hover:!bg-status-success/15 hover:!text-status-success"
                     >
                       <Check size={16} />
                       通过
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      fullWidth
                       onClick={() => rejectDealer(dealer.id)}
-                      className="flex-1 flex items-center justify-center gap-1 py-2 bg-red-50 text-red-500 rounded-lg text-sm"
+                      className="!bg-status-danger/15 !text-status-danger !border-status-danger/30 hover:!bg-status-danger/15 hover:!text-status-danger"
                     >
                       <X size={16} />
                       拒绝
-                    </button>
+                    </Button>
                   </div>
                 )}
               </Card>
@@ -124,7 +130,7 @@ export default function DealerManagement({ onBack }: DealerManagementProps) {
         </div>
 
         {filteredDealers.length === 0 && (
-          <div className="text-center py-12 text-yaozhiyan-gray-400">
+          <div className="text-center py-12 text-steel-light-gray">
             <Users size={48} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">暂无经销商数据</p>
           </div>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { User, Project, Order, Inquiry, Dealer, PointRecord, ProjectCase } from '@/types';
-import { projects as mockProjects, orders as mockOrders, dealers, inquiries as mockInquiries } from '@/data/mockData';
+import { User, Project, Order, Inquiry, Dealer, PointRecord, ProjectCase, PointGoods, PointExchangeRecord } from '@/types';
+import { projects as mockProjects, orders as mockOrders, dealers, inquiries as mockInquiries, pointGoods as mockPointGoods, exchangeRecords as mockExchangeRecords } from '@/data/mockData';
 import { PRICE_DISCOUNTS, POINT_RULES } from '@/constants';
 
 interface DiscountConfig {
@@ -19,6 +19,8 @@ interface Store {
   pointRecords: PointRecord[];
   myCases: ProjectCase[];
   pendingCases: ProjectCase[];
+  pointGoods: PointGoods[];
+  exchangeRecords: PointExchangeRecord[];
 
   login: (phone: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -50,6 +52,11 @@ interface Store {
   approveCase: (caseId: string) => void;
   rejectCase: (caseId: string, reason: string) => void;
   getMyCases: () => ProjectCase[];
+
+  addPointGoods: (goods: PointGoods) => void;
+  updatePointGoods: (goodsId: string, updates: Partial<PointGoods>) => void;
+  redeemGoods: (goodsId: string, address: string) => void;
+  updateShipStatus: (recordId: string, status: 'pending' | 'shipped') => void;
 }
 
 const adminUser: User = {
@@ -83,6 +90,8 @@ export const useStore = create<Store>((set, get) => ({
   pointRecords: mockPointRecords,
   myCases: mockMyCases,
   pendingCases: [],
+  pointGoods: mockPointGoods,
+  exchangeRecords: mockExchangeRecords,
 
   login: async (phone, password) => {
     if (phone === '13900000000' && password === '123456') {
@@ -328,5 +337,62 @@ export const useStore = create<Store>((set, get) => ({
     const userId = get().user?.id;
     if (!userId) return [];
     return get().myCases.filter((c) => c.dealerId === userId);
+  },
+
+  addPointGoods: (goods) => {
+    set((state) => ({
+      pointGoods: [goods, ...state.pointGoods],
+    }));
+  },
+
+  updatePointGoods: (goodsId, updates) => {
+    set((state) => ({
+      pointGoods: state.pointGoods.map((g) =>
+        g.id === goodsId ? { ...g, ...updates } : g
+      ),
+    }));
+  },
+
+  redeemGoods: (goodsId, address) => {
+    const user = get().user;
+    if (!user) return;
+
+    const goods = get().pointGoods.find((g) => g.id === goodsId);
+    if (!goods || goods.stock <= 0 || user.points < goods.needPoints) return;
+
+    const newRecord: PointExchangeRecord = {
+      id: `record-${Date.now()}`,
+      userId: user.id,
+      userName: user.name,
+      goodsId: goods.id,
+      goodsName: goods.name,
+      consumePoints: goods.needPoints,
+      receiveAddress: address,
+      createTime: new Date().toISOString().split('T')[0],
+      shipStatus: 'pending',
+    };
+
+    set((state) => ({
+      exchangeRecords: [newRecord, ...state.exchangeRecords],
+      pointGoods: state.pointGoods.map((g) =>
+        g.id === goodsId ? { ...g, stock: g.stock - 1 } : g
+      ),
+      user: state.user
+        ? {
+            ...state.user,
+            points: state.user.points - goods.needPoints,
+          }
+        : null,
+    }));
+
+    get().addPoints(-goods.needPoints, `兑换${goods.name}`, 'redeem', goodsId);
+  },
+
+  updateShipStatus: (recordId, status) => {
+    set((state) => ({
+      exchangeRecords: state.exchangeRecords.map((r) =>
+        r.id === recordId ? { ...r, shipStatus: status } : r
+      ),
+    }));
   },
 }));

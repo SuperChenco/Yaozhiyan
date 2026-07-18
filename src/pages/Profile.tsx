@@ -1,5 +1,7 @@
-import { User, Building, MapPin, FileText, ShoppingCart, Upload, Gift, ChevronRight, Settings, HelpCircle, LayoutDashboard, Users, Award, TrendingUp, Coins, Image } from 'lucide-react';
+import { User, Building, MapPin, FileText, ShoppingCart, Upload, Gift, ChevronRight, Settings, HelpCircle, LayoutDashboard, Users, Award, Coins, Image } from 'lucide-react';
 import Card from '@/components/Card';
+import Button from '@/components/Button';
+import { RoleBadge } from '@/components/StatusBadge';
 import { useStore } from '@/store/useStore';
 import { USER_ROLES, POINT_RULES } from '@/constants';
 
@@ -18,6 +20,7 @@ export default function Profile({ onNavigate }: ProfileProps) {
   const isProvincial = user?.role === 'provincial';
 
   const roleLabel = USER_ROLES.find((r) => r.value === user?.role)?.label || '用户';
+  const userRole = (user?.role || 'city') as 'admin' | 'provincial' | 'city';
   const myProjects = projects.filter(p => user && p.dealerName === user.name);
   const myOrders = orders.filter(o => user && o.dealerId === user.id);
   const myCases = getMyCases();
@@ -62,28 +65,32 @@ export default function Profile({ onNavigate }: ProfileProps) {
     { icon: Settings, label: '账户设置', page: 'settings' },
   ];
 
+  // 透明背景菜单项按钮覆盖样式
+  const menuItemBtnClass =
+    '!w-full !flex !items-center !justify-between !py-2.5 !px-0 !bg-transparent !border-0 !shadow-none !rounded-none hover:!border-0';
+  const menuItemBtnClassAdmin =
+    '!w-full !flex !items-center !justify-between !py-3 !px-0 !bg-transparent !border-0 !shadow-none !rounded-none hover:!border-0';
+
   if (isAdmin) {
     return (
-      <div className="min-h-screen bg-yaozhiyan-gray-50 pb-20">
-        <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 pt-12 pb-8 px-4">
+      <div className="min-h-screen bg-steel-light pb-20">
+        <div className="bg-steel-dark text-steel-white pt-12 pb-8 px-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-              <User size={32} className="text-white" />
+            <div className="w-16 h-16 bg-steel-white/20 rounded-base flex items-center justify-center">
+              <User size={32} className="text-steel-white" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-white">{user?.name}</h2>
+              <h2 className="text-xl font-bold text-steel-white">{user?.name}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 bg-white/20 text-white text-xs rounded">
-                  {roleLabel}
-                </span>
+                <RoleBadge label={roleLabel} role={userRole} />
               </div>
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-2 text-white/70 text-sm">
+          <div className="mt-6 flex items-center gap-2 text-steel-white/70 text-sm">
             <Building size={16} />
             <span>{user?.company}</span>
           </div>
-          <div className="flex items-center gap-2 text-white/70 text-sm mt-1">
+          <div className="flex items-center gap-2 text-steel-white/70 text-sm mt-1">
             <MapPin size={16} />
             <span>
               {user?.province}
@@ -94,22 +101,24 @@ export default function Profile({ onNavigate }: ProfileProps) {
 
         <div className="px-4 -mt-4">
           <Card className="p-4">
-            <h3 className="text-sm font-medium text-yaozhiyan-gray-700 mb-3">管理功能</h3>
+            <h3 className="text-sm font-medium text-steel-gray mb-3">管理功能</h3>
             <div className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <button
-                    key={item.label}
-                    onClick={() => onNavigate(item.page)}
-                    className="w-full flex items-center justify-between py-3 border-b border-yaozhiyan-gray-100 last:border-b-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon size={20} className="text-indigo-500" />
-                      <span className="text-sm text-yaozhiyan-gray-700">{item.label}</span>
-                    </div>
-                    <ChevronRight size={16} className="text-yaozhiyan-gray-400" />
-                  </button>
+                  <div key={item.label} className="border-b border-steel-light-gray last:border-b-0">
+                    <Button
+                      variant="default"
+                      onClick={() => onNavigate(item.page)}
+                      className={menuItemBtnClassAdmin}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon size={20} className="text-rock-blue" />
+                        <span className="text-sm text-steel-gray">{item.label}</span>
+                      </div>
+                      <ChevronRight size={16} className="text-steel-light-gray" />
+                    </Button>
+                  </div>
                 );
               })}
             </div>
@@ -118,21 +127,20 @@ export default function Profile({ onNavigate }: ProfileProps) {
 
         <div className="px-4 mt-4">
           <Card className="p-4">
-            <h3 className="text-sm font-medium text-yaozhiyan-gray-700 mb-3">其他</h3>
+            <h3 className="text-sm font-medium text-steel-gray mb-3">其他</h3>
             <div className="space-y-1">
               {toolItems.slice(-3).map((item) => {
                 const Icon = item.icon;
                 return (
-                  <button
-                    key={item.label}
-                    className="w-full flex items-center justify-between py-3 border-b border-yaozhiyan-gray-100 last:border-b-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon size={20} className="text-yaozhiyan-gray-500" />
-                      <span className="text-sm text-yaozhiyan-gray-700">{item.label}</span>
-                    </div>
-                    <ChevronRight size={16} className="text-yaozhiyan-gray-400" />
-                  </button>
+                  <div key={item.label} className="border-b border-steel-light-gray last:border-b-0">
+                    <Button variant="default" className={menuItemBtnClass}>
+                      <div className="flex items-center gap-3">
+                        <Icon size={20} className="text-steel-light-gray" />
+                        <span className="text-sm text-steel-gray">{item.label}</span>
+                      </div>
+                      <ChevronRight size={16} className="text-steel-light-gray" />
+                    </Button>
+                  </div>
                 );
               })}
             </div>
@@ -140,49 +148,48 @@ export default function Profile({ onNavigate }: ProfileProps) {
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-xs text-yaozhiyan-gray-400">曜之岩（广州）建材科技有限公司</p>
+          <p className="text-xs text-steel-light-gray">曜之岩（广州）建材科技有限公司</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-yaozhiyan-gray-50 pb-20">
-      <div className="bg-gradient-to-br from-yaozhiyan-primary via-yaozhiyan-primaryLight to-yaozhiyan-secondary pt-12 pb-8 px-4">
+    <div className="min-h-screen bg-steel-light pb-20">
+      <div className="bg-steel-dark text-steel-white pt-12 pb-8 px-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-            <User size={32} className="text-white" />
+          <div className="w-16 h-16 bg-steel-white/20 rounded-base flex items-center justify-center">
+            <User size={32} className="text-steel-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-white">{user?.name}</h2>
+            <h2 className="text-xl font-bold text-steel-white">{user?.name}</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 bg-white/20 text-white text-xs rounded">
-                {roleLabel}
-              </span>
-              <span className="text-white/70 text-sm">{user?.company}</span>
+              <RoleBadge label={roleLabel} role={userRole} />
+              <span className="text-steel-white/70 text-sm">{user?.company}</span>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+        <div className="mt-6 bg-steel-white/10 backdrop-blur-sm rounded-base p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Coins size={18} className="text-yellow-300" />
-              <span className="text-white text-sm font-medium">我的积分</span>
+              <Coins size={18} className="text-status-warn" />
+              <span className="text-steel-white text-sm font-medium">我的积分</span>
             </div>
-            <button
+            <Button
+              variant="default"
               onClick={() => onNavigate('points')}
-              className="text-white/70 text-xs flex items-center gap-1"
+              className="!bg-transparent !border-0 !shadow-none !p-0 !text-steel-white/70 hover:!text-steel-white/70 hover:!border-0"
             >
               积分明细
               <ChevronRight size={12} />
-            </button>
+            </Button>
           </div>
           <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-3xl font-bold text-white">{user?.points?.toLocaleString() || 0}</span>
-            <span className="text-white/70 text-sm">积分</span>
+            <span className="text-3xl font-bold text-steel-white">{user?.points?.toLocaleString() || 0}</span>
+            <span className="text-steel-white/70 text-sm">积分</span>
           </div>
-          <div className="flex items-center gap-4 text-white/70 text-xs">
+          <div className="flex items-center gap-4 text-steel-white/70 text-xs">
             <span>累计获得 {(user?.totalPoints || 0).toLocaleString()} 积分</span>
             <span className="flex items-center gap-1">
               <Gift size={12} />
@@ -196,20 +203,20 @@ export default function Profile({ onNavigate }: ProfileProps) {
         <Card className="p-4">
           <div className="grid grid-cols-4 gap-2 text-center">
             <div>
-              <p className="text-xl font-bold text-yaozhiyan-primary">{myProjects.length}</p>
-              <p className="text-xs text-yaozhiyan-gray-500 mt-0.5">报备项目</p>
+              <p className="text-xl font-bold text-rock-blue">{myProjects.length}</p>
+              <p className="text-xs text-steel-light-gray mt-0.5">报备项目</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-green-500">{myOrders.length}</p>
-              <p className="text-xs text-yaozhiyan-gray-500 mt-0.5">订单数</p>
+              <p className="text-xl font-bold text-status-success">{myOrders.length}</p>
+              <p className="text-xs text-steel-light-gray mt-0.5">订单数</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-amber-500">{totalArea.toLocaleString()}</p>
-              <p className="text-xs text-yaozhiyan-gray-500 mt-0.5">㎡ 项目面积</p>
+              <p className="text-xl font-bold text-status-warn">{totalArea.toLocaleString()}</p>
+              <p className="text-xs text-steel-light-gray mt-0.5">㎡ 项目面积</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-purple-500">{myCases.length}</p>
-              <p className="text-xs text-yaozhiyan-gray-500 mt-0.5">上传案例</p>
+              <p className="text-xl font-bold text-rock-hover">{myCases.length}</p>
+              <p className="text-xs text-steel-light-gray mt-0.5">上传案例</p>
             </div>
           </div>
         </Card>
@@ -219,41 +226,42 @@ export default function Profile({ onNavigate }: ProfileProps) {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Award size={18} className="text-yaozhiyan-primary" />
-              <span className="text-sm font-medium text-yaozhiyan-gray-700">经销商等级</span>
+              <Award size={18} className="text-rock-blue" />
+              <span className="text-sm font-medium text-steel-gray">经销商等级</span>
             </div>
-            <span className="text-xs text-yaozhiyan-primary">{levelInfo.level}</span>
+            <span className="text-xs text-rock-blue">{levelInfo.level}</span>
           </div>
-          <div className="w-full h-2 bg-yaozhiyan-gray-100 rounded-full overflow-hidden mb-2">
+          <div className="w-full h-2 bg-steel-light rounded-base overflow-hidden mb-2">
             <div
-              className="h-full bg-gradient-to-r from-yaozhiyan-primary to-yaozhiyan-secondary rounded-full"
+              className="h-full bg-rock-blue rounded-base"
               style={{ width: `${levelInfo.progress}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-yaozhiyan-gray-400">当前等级</span>
-            <span className="text-yaozhiyan-gray-400">下一级：{levelInfo.nextLevel}</span>
+            <span className="text-steel-light-gray">当前等级</span>
+            <span className="text-steel-light-gray">下一级：{levelInfo.nextLevel}</span>
           </div>
         </Card>
       </div>
 
       <div className="px-4 mt-4">
         <Card className="p-4">
-          <h3 className="text-sm font-medium text-yaozhiyan-gray-700 mb-3">我的业务</h3>
+          <h3 className="text-sm font-medium text-steel-gray mb-3">我的业务</h3>
           <div className="grid grid-cols-4 gap-3 mb-4">
             {dealerMenuItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
               return (
-                <button
+                <Button
                   key={item.label}
+                  variant="default"
                   onClick={() => onNavigate(item.page)}
-                  className="flex flex-col items-center gap-2"
+                  className="!flex-col !bg-transparent !border-0 !shadow-none !gap-2 !p-0 !text-steel-gray hover:!border-0"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-yaozhiyan-primary/10 flex items-center justify-center">
-                    <Icon size={20} className="text-yaozhiyan-primary" />
+                  <div className="w-11 h-11 rounded-base bg-rock-blue/10 flex items-center justify-center">
+                    <Icon size={20} className="text-rock-blue" />
                   </div>
-                  <span className="text-xs text-yaozhiyan-gray-600 text-center leading-tight">{item.label}</span>
-                </button>
+                  <span className="text-xs text-steel-gray text-center leading-tight">{item.label}</span>
+                </Button>
               );
             })}
           </div>
@@ -262,17 +270,19 @@ export default function Profile({ onNavigate }: ProfileProps) {
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
-                <button
-                  key={item.label}
-                  onClick={() => onNavigate(item.page)}
-                  className="w-full flex items-center justify-between py-2.5 border-b border-yaozhiyan-gray-100 last:border-b-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} className="text-yaozhiyan-gray-500" />
-                    <span className="text-sm text-yaozhiyan-gray-700">{item.label}</span>
-                  </div>
-                  <ChevronRight size={16} className="text-yaozhiyan-gray-400" />
-                </button>
+                <div key={item.label} className="border-b border-steel-light-gray last:border-b-0">
+                  <Button
+                    variant="default"
+                    onClick={() => onNavigate(item.page)}
+                    className={menuItemBtnClass}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className="text-steel-light-gray" />
+                      <span className="text-sm text-steel-gray">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-steel-light-gray" />
+                  </Button>
+                </div>
               );
             })}
           </div>
@@ -281,22 +291,24 @@ export default function Profile({ onNavigate }: ProfileProps) {
 
       <div className="px-4 mt-4">
         <Card className="p-4">
-          <h3 className="text-sm font-medium text-yaozhiyan-gray-700 mb-3">工具与服务</h3>
+          <h3 className="text-sm font-medium text-steel-gray mb-3">工具与服务</h3>
           <div className="space-y-1">
             {toolItems.map((item) => {
               const Icon = item.icon;
               return (
-                <button
-                  key={item.label}
-                  onClick={() => item.page && onNavigate(item.page)}
-                  className="w-full flex items-center justify-between py-2.5 border-b border-yaozhiyan-gray-100 last:border-b-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} className="text-yaozhiyan-gray-500" />
-                    <span className="text-sm text-yaozhiyan-gray-700">{item.label}</span>
-                  </div>
-                  <ChevronRight size={16} className="text-yaozhiyan-gray-400" />
-                </button>
+                <div key={item.label} className="border-b border-steel-light-gray last:border-b-0">
+                  <Button
+                    variant="default"
+                    onClick={() => item.page && onNavigate(item.page)}
+                    className={menuItemBtnClass}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className="text-steel-light-gray" />
+                      <span className="text-sm text-steel-gray">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-steel-light-gray" />
+                  </Button>
+                </div>
               );
             })}
           </div>
@@ -304,7 +316,7 @@ export default function Profile({ onNavigate }: ProfileProps) {
       </div>
 
       <div className="text-center mt-6">
-        <p className="text-xs text-yaozhiyan-gray-400">曜之岩（广州）建材科技有限公司</p>
+        <p className="text-xs text-steel-light-gray">曜之岩（广州）建材科技有限公司</p>
       </div>
     </div>
   );

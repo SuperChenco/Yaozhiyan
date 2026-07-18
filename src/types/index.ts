@@ -59,6 +59,12 @@ export interface Project {
   lastUpdate: string;
   description?: string;
   failReason?: string;
+  drawFiles?: Array<{
+    fileName: string;
+    fileUrl: string;
+    fileSize: number;
+    uploadTime: string;
+  }>;
 }
 
 export interface Order {
@@ -131,4 +137,26 @@ export interface ProjectCase {
   createdAt: string;
   approvedAt?: string;
   pointsAwarded?: number;
+}
+
+export interface PointGoods {
+  id: string;
+  name: string;
+  coverImg: string;
+  needPoints: number;
+  stock: number;
+  status: 'up' | 'down';
+  desc: string;
+}
+
+export interface PointExchangeRecord {
+  id: string;
+  userId: string;
+  userName: string;
+  goodsId: string;
+  goodsName: string;
+  consumePoints: number;
+  receiveAddress: string;
+  createTime: string;
+  shipStatus: 'pending' | 'shipped';
 }

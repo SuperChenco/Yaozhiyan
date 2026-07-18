@@ -32,85 +32,85 @@ export default function Register({ onBack }: RegisterProps) {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-yaozhiyan-gray-50 flex flex-col items-center justify-center px-4">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-steel-light flex flex-col items-center justify-center px-4">
+        <div className="w-16 h-16 bg-status-success/10 rounded-base flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-status-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-yaozhiyan-gray-800 mb-2">注册成功</h2>
-        <p className="text-sm text-yaozhiyan-gray-500 mb-6">我们的审核团队将在3个工作日内与您联系</p>
+        <h2 className="text-xl font-bold text-carbon-black mb-2">注册成功</h2>
+        <p className="text-sm text-steel-light-gray mb-6">我们的审核团队将在3个工作日内与您联系</p>
         <Button onClick={onBack}>返回登录</Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-yaozhiyan-gray-50 pb-20">
+    <div className="min-h-screen bg-steel-light pb-20">
       <Header title="经销商注册" showBack onBack={onBack} />
 
       <div className="px-4 py-4">
         <Card className="p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                姓名 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-steel-gray mb-1">
+                姓名 <span className="text-status-danger">*</span>
               </label>
               <div className="relative">
-                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-yaozhiyan-gray-400" />
+                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-light-gray" />
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="请输入您的姓名"
-                  className="w-full pl-10 pr-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm"
+                  className="w-full pl-10 pr-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                手机号 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-steel-gray mb-1">
+                手机号 <span className="text-status-danger">*</span>
               </label>
               <div className="relative">
-                <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-yaozhiyan-gray-400" />
+                <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-light-gray" />
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="请输入您的手机号"
-                  className="w-full pl-10 pr-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm"
+                  className="w-full pl-10 pr-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                公司名称 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-steel-gray mb-1">
+                公司名称 <span className="text-status-danger">*</span>
               </label>
               <div className="relative">
-                <Building size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-yaozhiyan-gray-400" />
+                <Building size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-light-gray" />
                 <input
                   type="text"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   placeholder="请输入公司名称"
-                  className="w-full pl-10 pr-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm"
+                  className="w-full pl-10 pr-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                申请等级 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-steel-gray mb-1">
+                申请等级 <span className="text-status-danger">*</span>
               </label>
               <select
                 value={formData.level}
                 onChange={(e) => setFormData({ ...formData, level: e.target.value as 'provincial' | 'city' })}
-                className="w-full px-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm"
+                className="w-full px-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm"
                 required
               >
                 <option value="">请选择申请等级</option>
@@ -123,15 +123,15 @@ export default function Register({ onBack }: RegisterProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                所在省份 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-steel-gray mb-1">
+                所在省份 <span className="text-status-danger">*</span>
               </label>
               <div className="relative">
-                <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-yaozhiyan-gray-400" />
+                <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-light-gray" />
                 <select
                   value={formData.province}
                   onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                  className="w-full pl-10 pr-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm appearance-none"
+                  className="w-full pl-10 pr-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm appearance-none"
                   required
                 >
                   <option value="">请选择省份</option>
@@ -146,15 +146,15 @@ export default function Register({ onBack }: RegisterProps) {
 
             {formData.level === 'city' && (
               <div>
-                <label className="block text-sm font-medium text-yaozhiyan-gray-700 mb-1">
-                  所在城市 <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-steel-gray mb-1">
+                  所在城市 <span className="text-status-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder="请输入城市名称"
-                  className="w-full px-3 py-2.5 border border-yaozhiyan-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yaozhiyan-primary text-sm"
+                  className="w-full px-3 py-2.5 border border-steel-light-gray rounded-base focus:outline-none focus:border-rock-blue text-sm"
                   required
                 />
               </div>

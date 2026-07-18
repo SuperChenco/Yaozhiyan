@@ -1,4 +1,4 @@
-import { Product, Case, Dealer, Project, Order, Inquiry } from '@/types';
+import { Product, Case, Dealer, Project, Order, Inquiry, PointGoods, PointExchangeRecord } from '@/types';
 
 const img = (prompt: string) =>
   `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=square`;
@@ -597,5 +597,109 @@ export const certifications = [
     name: '系统防火时效报告',
     issuer: '上海市消防科学研究所',
     date: '2024',
+  },
+];
+
+export const pointGoods: PointGoods[] = [
+  {
+    id: 'goods-001',
+    name: '样品板材套装',
+    coverImg: img('concrete panel sample kit building material product photo minimalist'),
+    needPoints: 500,
+    stock: 20,
+    status: 'up',
+    desc: 'SDC轻强混凝土装饰挂板样品套装，含多种纹理样式，便于向客户展示',
+  },
+  {
+    id: 'goods-002',
+    name: '施工工具包',
+    coverImg: img('construction tools kit professional building equipment product photo'),
+    needPoints: 300,
+    stock: 50,
+    status: 'up',
+    desc: '专业施工工具套装，包含切割工具、测量工具等必备工具',
+  },
+  {
+    id: 'goods-003',
+    name: '宣传画册',
+    coverImg: img('product catalog brochure building materials professional design'),
+    needPoints: 100,
+    stock: 100,
+    status: 'up',
+    desc: 'SDC产品精美宣传画册，图文并茂展示产品优势和案例',
+  },
+  {
+    id: 'goods-004',
+    name: '工装制服',
+    coverImg: img('professional work uniform construction company branded apparel'),
+    needPoints: 200,
+    stock: 30,
+    status: 'up',
+    desc: '品牌工装制服套装，彰显专业形象',
+  },
+  {
+    id: 'goods-005',
+    name: '展会物料',
+    coverImg: img('exhibition booth materials banners displays professional marketing'),
+    needPoints: 400,
+    stock: 15,
+    status: 'down',
+    desc: '展会专用宣传物料套装，含展架、海报、易拉宝等',
+  },
+  {
+    id: 'goods-006',
+    name: '激光测距仪',
+    coverImg: img('laser distance meter professional measuring tool digital device'),
+    needPoints: 800,
+    stock: 10,
+    status: 'up',
+    desc: '高精度激光测距仪，施工测量必备工具',
+  },
+];
+
+export const exchangeRecords: PointExchangeRecord[] = [
+  {
+    id: 'record-001',
+    userId: 'dealer-001',
+    userName: '张总',
+    goodsId: 'goods-001',
+    goodsName: '样品板材套装',
+    consumePoints: 500,
+    receiveAddress: '广东省广州市天河区XX路XX号广东建材贸易有限公司',
+    createTime: '2026-07-15',
+    shipStatus: 'shipped',
+  },
+  {
+    id: 'record-002',
+    userId: 'dealer-002',
+    userName: '李经理',
+    goodsId: 'goods-003',
+    goodsName: '宣传画册',
+    consumePoints: 100,
+    receiveAddress: '广东省深圳市南山区XX路XX号深圳建筑装饰工程有限公司',
+    createTime: '2026-07-14',
+    shipStatus: 'pending',
+  },
+  {
+    id: 'record-003',
+    userId: 'dealer-003',
+    userName: '王总',
+    goodsId: 'goods-002',
+    goodsName: '施工工具包',
+    consumePoints: 300,
+    receiveAddress: '上海市浦东新区XX路XX号上海建材科技有限公司',
+    createTime: '2026-07-13',
+    shipStatus: 'shipped',
+  },
+  {
+    id: 'record-004',
+    userId: 'dealer-001',
+    userName: '张总',
+    goodsId: 'goods-006',
+    goodsName: '激光测距仪',
+    consumePoints: 800,
+    receiveAddress: '广东省广州市天河区XX路XX号广东建材贸易有限公司',
+    createTime: '2026-07-10',
+    shipStatus: 'pending',
   },
 ];

@@ -1,76 +1,52 @@
 /** @type {import('tailwindcss').Config} */
 
 export default {
-  darkMode: "class",
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
-    container: {
-      center: true,
-    },
     extend: {
       colors: {
-        yaozhiyan: {
-          primary: "#1E3A5F",
-          primaryLight: "#2D4F7C",
-          primaryDark: "#152A45",
-          secondary: "#4A90A4",
-          secondaryLight: "#6BB3C9",
-          accent: "#00D4AA",
-          gray: {
-            50: "#F8F9FA",
-            100: "#E9ECEF",
-            200: "#DEE2E6",
-            300: "#CED4DA",
-            400: "#ADB5BD",
-            500: "#6C757D",
-            600: "#495057",
-            700: "#343A40",
-            800: "#212529",
-            900: "#16191D",
-          },
-          concrete: "#8B8B8B",
-          concreteLight: "#B8B8B8",
-          concreteDark: "#5A5A5A",
-          metal: "#C0C0C0",
-          metalLight: "#E8E8E8",
-          success: "#28A745",
-          warning: "#FFC107",
-          danger: "#DC3545",
-          info: "#17A2B8",
-        },
+        // 页面基底
+        'steel-light': '#F2F5F8',
+        'steel-white': '#FFFFFF',
+        'steel-dark': '#1A222C',
+        // 文字层级
+        'carbon-black': '#121923',
+        'steel-gray': '#44505E',
+        'steel-light-gray': '#8A98A8',
+        // 操作按钮主色
+        'rock-blue': '#27394F',
+        'rock-hover': '#344A66',
+        // 状态标准冷色调
+        'status-success': '#2D7D8C',
+        'status-warn': '#B88648',
+        'status-danger': '#9E4A4A',
+        // 三级经销商角色标识
+        'role-admin': '#635799',
+        'role-provincial': '#2B5480',
+        'role-city': '#4072A3',
+      },
+      borderRadius: {
+        base: '4px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px 0 rgba(26, 34, 44, 0.06)',
       },
       fontFamily: {
         sans: [
-          "HarmonyOS Sans",
-          "Noto Sans SC",
-          "PingFang SC",
-          "Microsoft YaHei",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Helvetica",
-          "Arial",
-          "sans-serif",
+          'HarmonyOS Sans',
+          'Noto Sans SC',
+          'PingFang SC',
+          'Microsoft YaHei',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Helvetica',
+          'Arial',
+          'sans-serif',
         ],
       },
-      animation: {
-        "highlight-pulse": "highlightPulse 1.2s ease-in-out 3",
-        "slide-in": "slideIn 0.25s ease-out",
-        "pop-in": "popIn 0.2s ease-out",
-      },
-      keyframes: {
-        highlightPulse: {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(7,193,96,0)" },
-          "50%": { boxShadow: "0 0 0 6px rgba(7,193,96,0.55)" },
-        },
-        slideIn: {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        popIn: {
-          "0%": { opacity: "0", transform: "scale(0.96)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
-        },
+      transitionTimingFunction: {
+        'fade': 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },
